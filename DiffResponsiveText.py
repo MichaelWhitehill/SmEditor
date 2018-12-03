@@ -1,24 +1,28 @@
+import tkinter as tk
+
 
 class DiffResponsiveText:
-    def __init__(self):
-        self.text = [str()]
+    def __init__(self, root):
+        self.text = tk.Text(root)
+        self.text.pack(side="right")
 
     def insert(self, delta_index, delta):
-        print(str(delta_index))
-        line_to_change = self.text[delta_index[0]-1]
-        new_line_str = line_to_change[:delta_index[1]] + str(delta) + line_to_change[delta_index[1]:]
-        self.text[delta_index[0] - 1] = new_line_str
+        self.text.insert(str(delta_index), delta)
         return
 
     def delete(self, delta_start, delta_index2):
-        # TODO
+        start = None
+        end = None
+        if delta_start < delta_index2:
+            start = delta_start
+            end = delta_index2
+        else:
+            start = delta_index2
+            end = delta_start
+
+        # needs the greater index first
+        self.text.delete(str(start), str(end))
         return None
 
     def get_text(self):
         return self.text
-
-    def __str__(self):
-        ret = ""
-        for line in self.text:
-            ret += line + "\n"
-        return ret
