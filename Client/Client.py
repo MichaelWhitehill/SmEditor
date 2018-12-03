@@ -1,6 +1,10 @@
 import SmEditor as GUI
 import socket
 import json
+#https://www.w3schools.com/python/python_json.asp
+
+
+
 
 TCP_IP = '127.0.0.1'
 TCP_PORT = 5005
@@ -16,4 +20,3 @@ s.close()
 
 print ("received data:", data)
 
-gui = GUI()
