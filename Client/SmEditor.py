@@ -68,6 +68,7 @@ class SmEditor(threading.Thread):
         self.original_insert = self.redirector.register("insert", self.on_insert)
         self.original_delete = self.redirector.register("delete", self.on_delete)
         self.delta_index = Cursor("1.0")
+        
         self.root.mainloop()
 
     def compute_current_delta(self):
