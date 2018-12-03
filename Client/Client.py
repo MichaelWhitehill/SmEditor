@@ -16,4 +16,5 @@ s.close()
 
 print ("received data:", data)
 
-gui = GUI()
+#create the object that holds the socket
+#pass an instance of the client class to smEditor

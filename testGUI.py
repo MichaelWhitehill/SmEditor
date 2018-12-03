@@ -43,6 +43,11 @@ class Notepad:
 
         # Set the window text
         self.__root.title("Untitled - Notepad")
+        self.__thisTextArea.config(background="lightgrey")
+
+        lbl = tkinter.Label(self.__thisTextArea, text="Welcome to our collaborative text editor", bg="grey")
+        # pack label
+        lbl.pack()
 
         # Center the window
         screenWidth = self.__root.winfo_screenwidth()
@@ -187,14 +192,15 @@ class Notepad:
         self.__thisTextArea.event_generate("<<Paste>>")
 
     def run(self):
-
         # Run main application
         self.__root.mainloop()
 
 
 
 
-        # Run main application
+
+
+# Run main application
 
 
 notepad = Notepad(width=600, height=400)
