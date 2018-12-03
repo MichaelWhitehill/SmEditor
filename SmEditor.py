@@ -18,22 +18,34 @@ class Cursor:
         return self.line, self.pos
 
     def __str__(self):
-        return str((self.line, self.pos))
+        return str(self.line) + "." + str(self.pos)
 
     def __add__(self, other):
-        return (self.line + other.line), (self.pos + other.pos)
+        line = self.line + other.line
+        pos = self.pos + other.pos
+        return Cursor(str(line)+"."+str(pos))
 
     def __sub__(self, other):
-        return (self.line - other.line), (self.pos - other.pos)
+        line = self.line - other.line
+        pos = self.pos - other.pos
+        return Cursor(str(line)+"."+str(pos))
+
+    def __lt__(self, other):
+        if self.line < other.line:
+            return True
+        if self.pos < other.pos:
+            return True
+        return False
 
 
 class SmEditor:
 
     def __init__(self):
-        self.d_text = DiffResponsiveText()
         self.root = tk.Tk()
         self.text = tk.Text(self.root)
         self.text.grid()
+        self.text.pack(side="left")
+        self.d_text = DiffResponsiveText(self.root)
         self.redirector = WidgetRedirector(self.text)
         self.original_mark = self.redirector.register("mark", self.on_mark)
         self.original_insert = self.redirector.register("insert", self.on_insert)
@@ -57,7 +69,6 @@ class SmEditor:
     def on_insert(self, *event):
         # print("insert", event)
         self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
-        print(str(self.d_text))
         self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
         return self.original_insert(*event)
 
@@ -68,14 +79,18 @@ class SmEditor:
             # Highlight and delete
         print(str(event))
         # Backspace
-        if event[0] is "insert-1c":
+        if event[0] == "insert-1c":
             print("delete the character behind the cursor")
-        elif event[0] is "insert":
+            insert_cursor = Cursor(self.text.index(INSERT))
+            self.d_text.delete(insert_cursor, insert_cursor - Cursor("0.1"))
+        elif event[0] == "insert":
             print("Delete the character before the cursor")
+            insert_cursor = Cursor(self.text.index(INSERT))
+            self.d_text.delete(insert_cursor, insert_cursor + Cursor("0.1"))
         elif event[0] == SEL_FIRST:
-            fi = self.text.index(SEL_FIRST)
-            li = self.text.index(SEL_LAST)
-            print(str(self.text.index(SEL_FIRST)) + "," + str(self.text.index(SEL_LAST)))
+            fi = Cursor(self.text.index(SEL_FIRST))
+            li = Cursor(self.text.index(SEL_LAST))
+            self.d_text.delete(fi, li)
         return self.original_delete(*event)
 
 
