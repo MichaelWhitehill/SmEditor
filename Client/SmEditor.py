@@ -1,3 +1,4 @@
+import threading
 import tkinter as tk
 from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
 
@@ -38,9 +39,25 @@ class Cursor:
         return False
 
 
-class SmEditor:
+class SmEditor(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, jsonController):
+        self.jsonCon = jsonController
+        self.root = None
+        self.text = None
+        self.d_text = None
+        self.redirector = None
+        self.original_mark = None
+        self.original_insert = None
+        self.original_delete = None
+        self.delta_index = Cursor("1.0")
+        threading.Thread.__init__(self)
+        self.start()
+
+    def callback(self):
+        self.root.quit()
+
+    def run(self):
         self.root = tk.Tk()
         self.text = tk.Text(self.root)
         self.text.grid()
@@ -68,16 +85,13 @@ class SmEditor:
 
     def on_insert(self, *event):
         # print("insert", event)
+        # Replace with call to socket V
         self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
+        self.jsonCon.send_message("Insert")
         self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
         return self.original_insert(*event)
 
     def on_delete(self, *event):
-        # There are 3 types of delete we must handle
-            # backspace
-            # Delete
-            # Highlight and delete
-        print(str(event))
         # Backspace
         if event[0] == "insert-1c":
             print("delete the character behind the cursor")

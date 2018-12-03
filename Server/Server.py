@@ -12,12 +12,15 @@ s.bind((TCP_IP, TCP_PORT))
 s.listen(1)
 
 conn, addr = s.accept()
-print ('Connection address:', addr)
+print('Connection address:', addr)
 
-while 1:
+while True:
     data = conn.recv(BUFFER_SIZE)
-    if not data: break
-    print ("recieved data:", data.decode())
-    conn.send(data)
+    data = data.decode()
+    print("recieved data:", data)
+    conn.send(data.encode())
+    if data == "QUIT":
+        conn.send("GOODBYE".encode())
+        break
 conn.close()
 
