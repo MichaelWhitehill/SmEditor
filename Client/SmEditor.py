@@ -1,6 +1,8 @@
 import tkinter as tk
 from threading import Thread
 from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
+from tkinter.messagebox import *
+from tkinter.filedialog import *
 
 from Client.JsonController import JsonController
 from DiffResponsiveText import DiffResponsiveText
@@ -42,6 +44,8 @@ class Cursor:
 
 class SmEditor:
 
+
+
     def __init__(self):
         self.jsonCon = JsonController(self)
         self.root = tk.Tk()
@@ -57,7 +61,15 @@ class SmEditor:
         listen_thread = Thread(target=self.jsonCon.listen)
         listen_thread.start()
         # listen_thread.join()
+        self.root.protocol('WM_DELETE_WINDOW', self.exit())
+
         self.root.mainloop()
+
+    def exit(self):
+        showinfo("MICHAEL FIX YOUR SHIT")
+        self.root.destroy()
+        
+
 
     def compute_current_delta(self):
         c_delta = Cursor(self.delta_index)
@@ -97,5 +109,3 @@ class SmEditor:
         return self.original_delete(*event)
 
 
-if __name__ == '__main__':
-    app = SmEditor()
