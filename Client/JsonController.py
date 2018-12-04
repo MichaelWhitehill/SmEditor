@@ -2,7 +2,7 @@ import socket
 from threading import Thread
 
 TCP_IP = '127.0.0.1'
-TCP_PORT = 5006
+TCP_PORT = 5005
 BUFFER_SIZE = 1024
 
 
@@ -29,8 +29,3 @@ class JsonController:
     def close(self):
         self.socket.close()
 
-
-if __name__ == '__main__':
-    smClient = JsonController()
-    smClient.send_message("QUIT")
-    smClient.close()

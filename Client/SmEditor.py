@@ -54,10 +54,17 @@ class SmEditor:
         self.original_insert = self.redirector.register("insert", self.on_insert)
         self.original_delete = self.redirector.register("delete", self.on_delete)
         self.delta_index = Cursor("1.0")
-        listen_thread = Thread(target=self.jsonCon.listen)
-        listen_thread.start()
-        # listen_thread.join()
+        self.listen_thread = Thread(target=self.jsonCon.listen)
+        self.listen_thread.start()
+        self.root.protocol('WM_DELETE_WINDOW', self.shutdown)  # root is your root window
         self.root.mainloop()
+
+    def shutdown(self):
+        print("Shutdown")
+        self.jsonCon.send_message("QUIT")
+        self.listen_thread.join(1)
+        self.jsonCon.close()
+        self.root.destroy()
 
     def compute_current_delta(self):
         c_delta = Cursor(self.delta_index)
