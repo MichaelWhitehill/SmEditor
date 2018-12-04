@@ -1,6 +1,8 @@
 import threading
 import tkinter as tk
 from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
+from tkinter.messagebox import *
+from tkinter.filedialog import *
 
 from DiffResponsiveText import DiffResponsiveText
 from WidgetRedirector import WidgetRedirector
@@ -51,6 +53,7 @@ class SmEditor(threading.Thread):
         self.original_insert = None
         self.original_delete = None
         self.delta_index = Cursor("1.0")
+        #self.root.protocol('WM_DELETE_WINDOW', self.exit())
         threading.Thread.__init__(self)
         self.start()
 
@@ -68,8 +71,16 @@ class SmEditor(threading.Thread):
         self.original_insert = self.redirector.register("insert", self.on_insert)
         self.original_delete = self.redirector.register("delete", self.on_delete)
         self.delta_index = Cursor("1.0")
-        
+
+
+
         self.root.mainloop()
+
+    def exit(self):
+        showinfo("MICHAEL FIX YOUR SHIT")
+        self.root.destroy()
+        
+
 
     def compute_current_delta(self):
         c_delta = Cursor(self.delta_index)
@@ -109,5 +120,3 @@ class SmEditor(threading.Thread):
         return self.original_delete(*event)
 
 
-if __name__ == '__main__':
-    app = SmEditor()
