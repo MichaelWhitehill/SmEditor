@@ -3,6 +3,8 @@ import tkinter
 from tkinter import *
 from tkinter.messagebox import *
 from tkinter.filedialog import *
+from tkinter import simpledialog
+
 
 
 class Notepad:
@@ -43,6 +45,7 @@ class Notepad:
 
         # Set the window text
         self.__root.title("Untitled - Notepad")
+
 
         # Center the window
         screenWidth = self.__root.winfo_screenwidth()
@@ -115,12 +118,16 @@ class Notepad:
         self.__thisScrollBar.config(command=self.__thisTextArea.yview)
         self.__thisTextArea.config(yscrollcommand=self.__thisScrollBar.set)
 
+        answer = simpledialog.askstring("Input", "What is your first name?",
+                                        parent=self.__root)
+        #TODO: figure out why the dialog box closes the notepad
+
     def __quitApplication(self):
         self.__root.destroy()
         # exit()
 
     def __showAbout(self):
-        showinfo("Notepad", "This is a dope notepad example")
+        showinfo("Notepad", "This is a great notepad example")
 
     def __openFile(self):
 
