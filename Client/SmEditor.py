@@ -1,9 +1,10 @@
-import threading
 import tkinter as tk
+from threading import Thread
 from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
 from tkinter.messagebox import *
 from tkinter.filedialog import *
 
+from Client.JsonController import JsonController
 from DiffResponsiveText import DiffResponsiveText
 from WidgetRedirector import WidgetRedirector
 
@@ -41,26 +42,12 @@ class Cursor:
         return False
 
 
-class SmEditor(threading.Thread):
+class SmEditor:
 
-    def __init__(self, jsonController):
-        self.jsonCon = jsonController
-        self.root = None
-        self.text = None
-        self.d_text = None
-        self.redirector = None
-        self.original_mark = None
-        self.original_insert = None
-        self.original_delete = None
-        self.delta_index = Cursor("1.0")
-        #self.root.protocol('WM_DELETE_WINDOW', self.exit())
-        threading.Thread.__init__(self)
-        self.start()
 
-    def callback(self):
-        self.root.quit()
 
-    def run(self):
+    def __init__(self):
+        self.jsonCon = JsonController(self)
         self.root = tk.Tk()
         self.text = tk.Text(self.root)
         self.text.grid()
@@ -71,8 +58,10 @@ class SmEditor(threading.Thread):
         self.original_insert = self.redirector.register("insert", self.on_insert)
         self.original_delete = self.redirector.register("delete", self.on_delete)
         self.delta_index = Cursor("1.0")
-
-
+        listen_thread = Thread(target=self.jsonCon.listen)
+        listen_thread.start()
+        # listen_thread.join()
+        self.root.protocol('WM_DELETE_WINDOW', self.exit())
 
         self.root.mainloop()
 
