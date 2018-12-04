@@ -1,9 +1,10 @@
 
 import socket
 import json
+import time
 
 TCP_IP = '127.0.0.1'
-TCP_PORT = 5006
+TCP_PORT = 5005
 BUFFER_SIZE = 1024
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -18,8 +19,8 @@ while True:
     data = conn.recv(BUFFER_SIZE)
     data = data.decode()
     print("recieved data:", data)
-    conn.send(data.encode())
     if data == "QUIT":
+        time.sleep(1)
         conn.send("GOODBYE".encode())
         break
 conn.close()
