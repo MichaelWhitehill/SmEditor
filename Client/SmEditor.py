@@ -1,8 +1,6 @@
 import tkinter as tk
 from threading import Thread
 from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
-from tkinter.messagebox import *
-from tkinter.filedialog import *
 
 from Client.JsonController import JsonController
 from DiffResponsiveText import DiffResponsiveText
@@ -44,8 +42,6 @@ class Cursor:
 
 class SmEditor:
 
-
-
     def __init__(self):
         self.jsonCon = JsonController(self)
         self.root = tk.Tk()
@@ -70,7 +66,6 @@ class SmEditor:
         self.jsonCon.close()
         self.root.destroy()
 
-
     def compute_current_delta(self):
         c_delta = Cursor(self.delta_index)
         c_insert = Cursor(self.text.index(INSERT))
@@ -88,8 +83,8 @@ class SmEditor:
         # print("insert", event)
         # Replace with call to socket V
         self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
-        self.jsonCon.send_message("Insert")
         self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
+        self.jsonCon.propagate_insert(Cursor(self.text.index(INSERT)), event[1])
         return self.original_insert(*event)
 
     def on_delete(self, *event):
@@ -98,14 +93,19 @@ class SmEditor:
             print("delete the character behind the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
             self.d_text.delete(insert_cursor, insert_cursor - Cursor("0.1"))
+            self.jsonCon.propagate_delete(insert_cursor, insert_cursor - Cursor("0.1"))
         elif event[0] == "insert":
             print("Delete the character before the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
             self.d_text.delete(insert_cursor, insert_cursor + Cursor("0.1"))
+            self.jsonCon.propagate_delete(insert_cursor, insert_cursor + Cursor("0.1"))
         elif event[0] == SEL_FIRST:
             fi = Cursor(self.text.index(SEL_FIRST))
             li = Cursor(self.text.index(SEL_LAST))
             self.d_text.delete(fi, li)
+            self.jsonCon.propagate_delete(fi, li)
         return self.original_delete(*event)
 
 
+if __name__ == '__main__':
+    app = SmEditor()
