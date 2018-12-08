@@ -48,7 +48,6 @@ class SmEditor:
         self.text = tk.Text(self.root)
         self.text.grid()
         self.text.pack(side="left")
-        self.d_text = DiffResponsiveText(self.root)
         self.redirector = WidgetRedirector(self.text)
         self.original_mark = self.redirector.register("mark", self.on_mark)
         self.original_insert = self.redirector.register("insert", self.on_insert)
@@ -82,7 +81,6 @@ class SmEditor:
 
     def on_insert(self, *event):
         # print("insert", event)
-        self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
         self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
         if not self.ignore_actions:
             self.jsonCon.propagate_insert(Cursor(self.text.index(INSERT)), event[1])
@@ -95,22 +93,16 @@ class SmEditor:
         if event[0] == "insert-1c":
             print("delete the character behind the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
-            self.d_text.delete(insert_cursor, insert_cursor - Cursor("0.1"))
             index_1 = insert_cursor
             index_2 = insert_cursor - Cursor("0.1")
-            # self.jsonCon.propagate_delete(insert_cursor, insert_cursor - Cursor("0.1"))
         elif event[0] == "insert":
             print("Delete the character before the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
-            self.d_text.delete(insert_cursor, insert_cursor + Cursor("0.1"))
             index_1 = insert_cursor
             index_2 = insert_cursor + Cursor("0.1")
-            # self.jsonCon.propagate_delete(insert_cursor, insert_cursor + Cursor("0.1"))
         elif event[0] == SEL_FIRST:
             index_1 = Cursor(self.text.index(SEL_FIRST))
             index_2 = Cursor(self.text.index(SEL_LAST))
-            # self.d_text.delete(fi, li)
-            # self.jsonCon.propagate_delete(fi, li)
         if not self.ignore_actions:
             self.jsonCon.propagate_delete(index_1, index_2)
         return self.original_delete(*event)
