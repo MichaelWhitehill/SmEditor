@@ -57,6 +57,7 @@ class SmEditor:
         self.listen_thread = Thread(target=self.jsonCon.listen)
         self.listen_thread.start()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)  # root is your root window
+        self.ignore_actions = False
         self.root.mainloop()
 
     def shutdown(self):
@@ -81,30 +82,60 @@ class SmEditor:
 
     def on_insert(self, *event):
         # print("insert", event)
-        # Replace with call to socket V
         self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
         self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
-        self.jsonCon.propagate_insert(Cursor(self.text.index(INSERT)), event[1])
+        if not self.ignore_actions:
+            self.jsonCon.propagate_insert(Cursor(self.text.index(INSERT)), event[1])
         return self.original_insert(*event)
 
     def on_delete(self, *event):
         # Backspace
+        index_1 = None
+        index_2 = None
         if event[0] == "insert-1c":
             print("delete the character behind the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
             self.d_text.delete(insert_cursor, insert_cursor - Cursor("0.1"))
-            self.jsonCon.propagate_delete(insert_cursor, insert_cursor - Cursor("0.1"))
+            index_1 = insert_cursor
+            index_2 = insert_cursor - Cursor("0.1")
+            # self.jsonCon.propagate_delete(insert_cursor, insert_cursor - Cursor("0.1"))
         elif event[0] == "insert":
             print("Delete the character before the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
             self.d_text.delete(insert_cursor, insert_cursor + Cursor("0.1"))
-            self.jsonCon.propagate_delete(insert_cursor, insert_cursor + Cursor("0.1"))
+            index_1 = insert_cursor
+            index_2 = insert_cursor + Cursor("0.1")
+            # self.jsonCon.propagate_delete(insert_cursor, insert_cursor + Cursor("0.1"))
         elif event[0] == SEL_FIRST:
-            fi = Cursor(self.text.index(SEL_FIRST))
-            li = Cursor(self.text.index(SEL_LAST))
-            self.d_text.delete(fi, li)
-            self.jsonCon.propagate_delete(fi, li)
+            index_1 = Cursor(self.text.index(SEL_FIRST))
+            index_2 = Cursor(self.text.index(SEL_LAST))
+            # self.d_text.delete(fi, li)
+            # self.jsonCon.propagate_delete(fi, li)
+        if not self.ignore_actions:
+            self.jsonCon.propagate_delete(index_1, index_2)
         return self.original_delete(*event)
+
+    def net_insert(self, delta_index, delta):
+        self.ignore_actions = True
+        self.text.insert(str(delta_index), delta)
+        self.ignore_actions = False
+        return
+
+    def net_delete(self, delta_start, delta_index2):
+        start = None
+        end = None
+        if delta_start < delta_index2:
+            start = delta_start
+            end = delta_index2
+        else:
+            start = delta_index2
+            end = delta_start
+
+        # needs the greater index first
+        self.ignore_actions = True
+        self.text.delete(str(start), str(end))
+        self.ignore_actions = False
+        return None
 
 
 if __name__ == '__main__':
