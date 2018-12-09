@@ -1,6 +1,5 @@
 
 import socket
-import json
 import time
 import threading
 
@@ -22,11 +21,11 @@ class Server:
         while self.running:
             conn, address = self.socket.accept()
             print('Connection address:', address)
-            client_listen_thread = threading.Thread(target=self.listen_to_client, args=(conn, address))
+            client_listen_thread = threading.Thread(target=self.listen_to_client, args=(conn,))
             self.client_list.append((conn, address, client_listen_thread))
             client_listen_thread.start()
 
-    def listen_to_client(self, conn, address):
+    def listen_to_client(self, conn):
         while self.running:
             data_raw = conn.recv(BUFFER_SIZE)
             data = data_raw.decode()
@@ -57,9 +56,7 @@ class Server:
         for client in self.client_list:
             client[0].send("GOODBYE".encode())
             client[2].join(1)
-
-# while True:
-# conn.close()
+        self.socket.close()
 
 
 if __name__ == '__main__':
