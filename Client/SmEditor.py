@@ -1,6 +1,10 @@
+import os
 import tkinter as tk
 from threading import Thread
-from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
+from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.messagebox import showinfo
+
 
 from Client.JsonController import JsonController, OP, GET_ALL_TEXT
 from WidgetRedirector import WidgetRedirector
@@ -41,12 +45,27 @@ class Cursor:
 
 class SmEditor:
 
+    root = tk.Tk()
+
+    __thisWidth = 500
+    __thisHeight = 450
+    __thisMenuBar = Menu(root)
+    __thisFileMenu = Menu(__thisMenuBar, tearoff=0)
+    __thisEditMenu = Menu(__thisMenuBar, tearoff=0)
+    __thisHelpMenu = Menu(__thisMenuBar, tearoff=0)
+   # __thisScrollBar = Scrollbar(text)
+    __file = None
+
     def __init__(self):
         self.jsonCon = JsonController(self)
-        self.root = tk.Tk()
+
         self.text = tk.Text(self.root)
         self.text.grid()
         self.text.pack(side="left")
+
+
+        self.d_text = DiffResponsiveText(self.root)
+
         self.redirector = WidgetRedirector(self.text)
         self.original_mark = self.redirector.register("mark", self.on_mark)
         self.original_insert = self.redirector.register("insert", self.on_insert)
@@ -56,9 +75,98 @@ class SmEditor:
         self.listen_thread.start()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)  # root is your root window
         self.ignore_actions = False
+
+
+        self.root.title("Collaborative Notepad CS457")
+        screenWidth = self.root.winfo_screenwidth()
+        screenHeight = self.root.winfo_screenheight()
+        left = (screenWidth / 2) - (self.__thisWidth / 2)
+        top = (screenHeight / 2) - (self.__thisHeight / 2)
+        self.root.geometry('%dx%d+%d+%d' % (self.__thisWidth,self.__thisHeight,left, top))
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+        #self.text.grid(sticky=N + E + S + W)
+
+        self.__thisFileMenu.add_command(label="New", command=self.__newFile)
+        self.__thisFileMenu.add_command(label="Open",command=self.__openFile)
+        self.__thisFileMenu.add_command(label="Save",command=self.__saveFile)
+        self.__thisFileMenu.add_separator()
+        self.__thisMenuBar.add_cascade(label="File",menu=self.__thisFileMenu)
+        self.__thisEditMenu.add_command(label="Cut",command=self.__cut)
+        self.__thisEditMenu.add_command(label="Copy",command=self.__copy)
+        self.__thisEditMenu.add_command(label="Paste",command=self.__paste)
+        self.__thisMenuBar.add_cascade(label="Edit",menu=self.__thisEditMenu)
+        self.__thisHelpMenu.add_command(label="About Notepad",command=self.__showAbout)
+        self.__thisMenuBar.add_cascade(label="Help",menu=self.__thisHelpMenu)
+
+        self.root.config(menu=self.__thisMenuBar)
+        # self.__thisScrollBar.pack(side=RIGHT, fill=Y)
+        # self.__thisScrollBar.config(command=self.text.yview)
+        # self.text.config(yscrollcommand=self.__thisScrollBar.set)
+
         get_text_dict = {OP: GET_ALL_TEXT}
         self.jsonCon.send_dict(get_text_dict)
+
         self.root.mainloop()
+
+
+
+
+    def __showAbout(self):
+        showinfo("Notepad", "Welcome to our collaborative notepad example")
+
+    def __openFile(self):
+
+        self.__file = askopenfilename(defaultextension=".txt",filetypes=[("All Files", "*.*"),("Text Documents", "*.txt")])
+
+        if self.__file == "":
+            self.__file = None #no file specified
+        else:
+            self.root.title(os.path.basename(self.__file) + " - Notepad")
+            self.text.delete(1.0, END)
+
+            file = open(self.__file, "r")
+
+        #TODO: Check this against michaels code:
+            self.text.insert(1.0, file.read())
+            file.close()
+
+    def __newFile(self):
+        self.root.title("Untitled - Notepad")
+        self.__file = None
+        self.text.delete(1.0, END)
+
+    def __saveFile(self):
+
+        if self.__file == None:
+            self.__file = asksaveasfilename(initialfile='Untitled.txt',defaultextension=".txt",filetypes=[("All Files", "*.*"),("Text Documents", "*.txt")])
+
+            if self.__file == "":
+                self.__file = None
+            else:
+                file = open(self.__file, "w")
+                file.write(self.text.get(1.0, END))
+                file.close()
+
+                self.root.title(os.path.basename(self.__file) + " - Notepad")
+
+
+        else:
+            file = open(self.__file, "w")
+            file.write(self.text.get(1.0, END))
+            file.close()
+
+    def __cut(self):
+        self.text.event_generate("<<Cut>>")
+
+    def __copy(self):
+        self.text.event_generate("<<Copy>>")
+
+    def __paste(self):
+        self.text.event_generate("<<Paste>>")
+
+
+
 
     def shutdown(self):
         print("Shutdown")
