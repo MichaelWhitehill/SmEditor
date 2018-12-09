@@ -5,16 +5,17 @@ from tkinter.messagebox import *
 from tkinter.filedialog import *
 from tkinter import simpledialog
 
-
+fileNames = []
+#everytime we make a new file - root should prompt for a user input of file name
 
 class Notepad:
-    __root = Tk()
+    root = Tk()
 
     # default window width and height
     __thisWidth = 300
     __thisHeight = 300
-    __thisTextArea = Text(__root)
-    __thisMenuBar = Menu(__root)
+    __thisTextArea = Text(root)
+    __thisMenuBar = Menu(root)
     __thisFileMenu = Menu(__thisMenuBar, tearoff=0)
     __thisEditMenu = Menu(__thisMenuBar, tearoff=0)
     __thisHelpMenu = Menu(__thisMenuBar, tearoff=0)
@@ -27,7 +28,7 @@ class Notepad:
 
         # Set icon
         try:
-            self.__root.wm_iconbitmap("Notepad.ico")
+            self.root.wm_iconbitmap("Notepad.ico")
         except:
             pass
 
@@ -44,12 +45,12 @@ class Notepad:
             pass
 
         # Set the window text
-        self.__root.title("Untitled - Notepad")
+        self.root.title("Untitled - Notepad")
 
 
         # Center the window
-        screenWidth = self.__root.winfo_screenwidth()
-        screenHeight = self.__root.winfo_screenheight()
+        screenWidth = self.root.winfo_screenwidth()
+        screenHeight = self.root.winfo_screenheight()
 
         # For left-alling
         left = (screenWidth / 2) - (self.__thisWidth / 2)
@@ -58,13 +59,13 @@ class Notepad:
         top = (screenHeight / 2) - (self.__thisHeight / 2)
 
         # For top and bottom
-        self.__root.geometry('%dx%d+%d+%d' % (self.__thisWidth,
+        self.root.geometry('%dx%d+%d+%d' % (self.__thisWidth,
                                               self.__thisHeight,
                                               left, top))
 
         # To make the textarea auto resizable
-        self.__root.grid_rowconfigure(0, weight=1)
-        self.__root.grid_columnconfigure(0, weight=1)
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
 
         # Add controls (widget)
         self.__thisTextArea.grid(sticky=N + E + S + W)
@@ -110,7 +111,7 @@ class Notepad:
         self.__thisMenuBar.add_cascade(label="Help",
                                        menu=self.__thisHelpMenu)
 
-        self.__root.config(menu=self.__thisMenuBar)
+        self.root.config(menu=self.__thisMenuBar)
 
         self.__thisScrollBar.pack(side=RIGHT, fill=Y)
 
@@ -118,13 +119,27 @@ class Notepad:
         self.__thisScrollBar.config(command=self.__thisTextArea.yview)
         self.__thisTextArea.config(yscrollcommand=self.__thisScrollBar.set)
 
-        answer = simpledialog.askstring("Input", "What is your first name?",
-                                        parent=self.__root)
-        #TODO: figure out why the dialog box closes the notepad
+        self.root.title = (self.getFileName())
+
+        self.run()
+
 
     def __quitApplication(self):
-        self.__root.destroy()
-        # exit()
+        self.root.destroy()
+
+
+    def getFileName(self):
+        self.root.withdraw()
+        answer = simpledialog.askstring("Input", "Enter File Name?", parent=self.root)
+        if answer == "":
+            showinfo("Error", "Error - new files must be named")
+            self.getFileName()
+        else:
+            fileNames.append(answer)
+
+        return answer
+
+
 
     def __showAbout(self):
         showinfo("Notepad", "This is a great notepad example")
@@ -143,7 +158,7 @@ class Notepad:
 
             # Try to open the file
             # set the window title
-            self.__root.title(os.path.basename(self.__file) + " - Notepad")
+            self.root.title(os.path.basename(self.__file) + " - Notepad")
             self.__thisTextArea.delete(1.0, END)
 
             file = open(self.__file, "r")
@@ -153,7 +168,7 @@ class Notepad:
             file.close()
 
     def __newFile(self):
-        self.__root.title("Untitled - Notepad")
+        self.root.title("Untitled - Notepad")
         self.__file = None
         self.__thisTextArea.delete(1.0, END)
 
@@ -176,7 +191,7 @@ class Notepad:
                 file.close()
 
                 # Change the window title
-                self.__root.title(os.path.basename(self.__file) + " - Notepad")
+                self.root.title(os.path.basename(self.__file) + " - Notepad")
 
 
         else:
@@ -196,7 +211,7 @@ class Notepad:
     def run(self):
 
         # Run main application
-        self.__root.mainloop()
+        self.root.mainloop()
 
 
 
@@ -205,4 +220,4 @@ class Notepad:
 
 
 notepad = Notepad(width=600, height=400)
-notepad.run()
+#notepad.run()
