@@ -1,8 +1,9 @@
+import os
 import tkinter as tk
 from threading import Thread
-from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
-from tkinter.filedialog import *
-from tkinter.messagebox import *
+from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar
+from tkinter.filedialog import askopenfilename, asksaveasfilename
+from tkinter.messagebox import showinfo
 
 
 from Client.JsonController import JsonController
@@ -49,23 +50,22 @@ class SmEditor:
 
     __thisWidth = 500
     __thisHeight = 450
-    __thisTextArea = Text(root)
     __thisMenuBar = Menu(root)
     __thisFileMenu = Menu(__thisMenuBar, tearoff=0)
     __thisEditMenu = Menu(__thisMenuBar, tearoff=0)
     __thisHelpMenu = Menu(__thisMenuBar, tearoff=0)
-    __thisScrollBar = Scrollbar(__thisTextArea)
+   # __thisScrollBar = Scrollbar(text)
     __file = None
 
     def __init__(self):
         self.jsonCon = JsonController(self)
 
-        #self.root = tk.Tk()
-        #self.text.grid()
-        #self.__thisTextArea.pack(side="left")
+        self.text = tk.Text(self.root)
+        self.text.grid()
+        self.text.pack(side="left")
 
         self.d_text = DiffResponsiveText(self.root)
-        self.redirector = WidgetRedirector(self.__thisTextArea)
+        self.redirector = WidgetRedirector(self.text)
         self.original_mark = self.redirector.register("mark", self.on_mark)
         self.original_insert = self.redirector.register("insert", self.on_insert)
         self.original_delete = self.redirector.register("delete", self.on_delete)
@@ -83,7 +83,7 @@ class SmEditor:
         self.root.geometry('%dx%d+%d+%d' % (self.__thisWidth,self.__thisHeight,left, top))
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
-        #self.__thisTextArea.grid(sticky=N + E + S + W)
+        #self.text.grid(sticky=N + E + S + W)
 
         self.__thisFileMenu.add_command(label="New", command=self.__newFile)
         self.__thisFileMenu.add_command(label="Open",command=self.__openFile)
@@ -98,9 +98,9 @@ class SmEditor:
         self.__thisMenuBar.add_cascade(label="Help",menu=self.__thisHelpMenu)
 
         self.root.config(menu=self.__thisMenuBar)
-        self.__thisScrollBar.pack(side=RIGHT, fill=Y)
-        self.__thisScrollBar.config(command=self.__thisTextArea.yview)
-        self.__thisTextArea.config(yscrollcommand=self.__thisScrollBar.set)
+        # self.__thisScrollBar.pack(side=RIGHT, fill=Y)
+        # self.__thisScrollBar.config(command=self.text.yview)
+        # self.text.config(yscrollcommand=self.__thisScrollBar.set)
 
         self.root.mainloop()
 
@@ -118,18 +118,18 @@ class SmEditor:
             self.__file = None #no file specified
         else:
             self.root.title(os.path.basename(self.__file) + " - Notepad")
-            self.__thisTextArea.delete(1.0, END)
+            self.text.delete(1.0, END)
 
             file = open(self.__file, "r")
 
         #TODO: Check this against michaels code:
-            self.__thisTextArea.insert(1.0, file.read())
+            self.text.insert(1.0, file.read())
             file.close()
 
     def __newFile(self):
         self.root.title("Untitled - Notepad")
         self.__file = None
-        self.__thisTextArea.delete(1.0, END)
+        self.text.delete(1.0, END)
 
     def __saveFile(self):
 
@@ -140,7 +140,7 @@ class SmEditor:
                 self.__file = None
             else:
                 file = open(self.__file, "w")
-                file.write(self.__thisTextArea.get(1.0, END))
+                file.write(self.text.get(1.0, END))
                 file.close()
 
                 self.root.title(os.path.basename(self.__file) + " - Notepad")
@@ -148,17 +148,17 @@ class SmEditor:
 
         else:
             file = open(self.__file, "w")
-            file.write(self.__thisTextArea.get(1.0, END))
+            file.write(self.text.get(1.0, END))
             file.close()
 
     def __cut(self):
-        self.__thisTextArea.event_generate("<<Cut>>")
+        self.text.event_generate("<<Cut>>")
 
     def __copy(self):
-        self.__thisTextArea.event_generate("<<Copy>>")
+        self.text.event_generate("<<Copy>>")
 
     def __paste(self):
-        self.__thisTextArea.event_generate("<<Paste>>")
+        self.text.event_generate("<<Paste>>")
 
 
 
@@ -172,23 +172,23 @@ class SmEditor:
 
     def compute_current_delta(self):
         c_delta = Cursor(self.delta_index)
-        c_insert = Cursor(self.__thisTextArea.index(INSERT))
-        text = self.__thisTextArea.get(self.delta_index, INSERT)
-        self.delta_index = self.__thisTextArea.index(INSERT)
+        c_insert = Cursor(self.text.index(INSERT))
+        text = self.text.get(self.delta_index, INSERT)
+        self.delta_index = self.text.index(INSERT)
         return text, c_delta, (c_insert - c_delta)
 
     def on_mark(self, *event):
         # print("mark", event)
         # the mark/cursor position was updated. We want to update our current cursor tracker and the delta cursor
-        self.delta_index = Cursor(self.__thisTextArea.index(INSERT))
+        self.delta_index = Cursor(self.text.index(INSERT))
         return self.original_mark(*event)
 
     def on_insert(self, *event):
         # print("insert", event)
-        self.d_text.insert(Cursor(self.__thisTextArea.index(INSERT)), event[1])
-        self.delta_index = Cursor(self.__thisTextArea.index(INSERT)) + Cursor("0.1")
+        self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
+        self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
         if not self.ignore_actions:
-            self.jsonCon.propagate_insert(Cursor(self.__thisTextArea.index(INSERT)), event[1])
+            self.jsonCon.propagate_insert(Cursor(self.text.index(INSERT)), event[1])
         return self.original_insert(*event)
 
     def on_delete(self, *event):
@@ -197,21 +197,21 @@ class SmEditor:
         index_2 = None
         if event[0] == "insert-1c":
             print("delete the character behind the cursor")
-            insert_cursor = Cursor(self.__thisTextArea.index(INSERT))
+            insert_cursor = Cursor(self.text.index(INSERT))
             self.d_text.delete(insert_cursor, insert_cursor - Cursor("0.1"))
             index_1 = insert_cursor
             index_2 = insert_cursor - Cursor("0.1")
             # self.jsonCon.propagate_delete(insert_cursor, insert_cursor - Cursor("0.1"))
         elif event[0] == "insert":
             print("Delete the character before the cursor")
-            insert_cursor = Cursor(self.__thisTextArea.index(INSERT))
+            insert_cursor = Cursor(self.text.index(INSERT))
             self.d_text.delete(insert_cursor, insert_cursor + Cursor("0.1"))
             index_1 = insert_cursor
             index_2 = insert_cursor + Cursor("0.1")
             # self.jsonCon.propagate_delete(insert_cursor, insert_cursor + Cursor("0.1"))
         elif event[0] == SEL_FIRST:
-            index_1 = Cursor(self.__thisTextArea.index(SEL_FIRST))
-            index_2 = Cursor(self.__thisTextArea.index(SEL_LAST))
+            index_1 = Cursor(self.text.index(SEL_FIRST))
+            index_2 = Cursor(self.text.index(SEL_LAST))
             # self.d_text.delete(fi, li)
             # self.jsonCon.propagate_delete(fi, li)
         if not self.ignore_actions:
@@ -220,7 +220,7 @@ class SmEditor:
 
     def net_insert(self, delta_index, delta):
         self.ignore_actions = True
-        self.__thisTextArea.insert(str(delta_index), delta)
+        self.text.insert(str(delta_index), delta)
         self.ignore_actions = False
         return
 
@@ -236,7 +236,7 @@ class SmEditor:
 
         # needs the greater index first
         self.ignore_actions = True
-        self.__thisTextArea.delete(str(start), str(end))
+        self.text.delete(str(start), str(end))
         self.ignore_actions = False
         return None
 
