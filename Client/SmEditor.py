@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from threading import Thread
-from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar
+from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar, N, E, S, W
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
@@ -54,15 +54,16 @@ class SmEditor:
     __thisFileMenu = Menu(__thisMenuBar, tearoff=0)
     __thisEditMenu = Menu(__thisMenuBar, tearoff=0)
     __thisHelpMenu = Menu(__thisMenuBar, tearoff=0)
-   # __thisScrollBar = Scrollbar(text)
     __file = None
 
     def __init__(self):
         self.jsonCon = JsonController(self)
 
         self.text = tk.Text(self.root)
-        self.text.grid()
+        self.text.grid(sticky=N + E + S + W)
         self.text.pack(side="left")
+
+        self.__thisScrollBar = Scrollbar(self.text)
 
         self.d_text = DiffResponsiveText(self.root)
         self.redirector = WidgetRedirector(self.text)
@@ -98,10 +99,10 @@ class SmEditor:
         self.__thisMenuBar.add_cascade(label="Help",menu=self.__thisHelpMenu)
 
         self.root.config(menu=self.__thisMenuBar)
-        # self.__thisScrollBar.pack(side=RIGHT, fill=Y)
-        # self.__thisScrollBar.config(command=self.text.yview)
-        # self.text.config(yscrollcommand=self.__thisScrollBar.set)
-
+        self.__thisScrollBar.pack(side=RIGHT, fill=Y)
+        self.__thisScrollBar.config(command=self.text.yview)
+        self.text.config(yscrollcommand=self.__thisScrollBar.set)
+        #showinfo("Welcome","Welcome to our collaborative text editor for CS457 \n\nCreated by Jonathan Cowles & Michael Whitehill")
         self.root.mainloop()
 
 
@@ -122,7 +123,6 @@ class SmEditor:
 
             file = open(self.__file, "r")
 
-        #TODO: Check this against michaels code:
             self.text.insert(1.0, file.read())
             file.close()
 
