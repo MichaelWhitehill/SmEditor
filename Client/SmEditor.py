@@ -63,9 +63,6 @@ class SmEditor:
         self.text.grid()
         self.text.pack(side="left")
 
-
-        self.d_text = DiffResponsiveText(self.root)
-
         self.redirector = WidgetRedirector(self.text)
         self.original_mark = self.redirector.register("mark", self.on_mark)
         self.original_insert = self.redirector.register("insert", self.on_insert)
@@ -212,6 +209,9 @@ class SmEditor:
         elif event[0] == SEL_FIRST:
             index_1 = Cursor(self.text.index(SEL_FIRST))
             index_2 = Cursor(self.text.index(SEL_LAST))
+        elif event[0] == 1.0:
+            index_1 = Cursor("1.0")
+            index_2 = Cursor(self.text.index(event[1]))
         if not self.ignore_actions:
             self.jsonCon.propagate_delete(index_1, index_2)
         return self.original_delete(*event)

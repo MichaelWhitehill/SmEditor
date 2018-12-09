@@ -1,7 +1,7 @@
 import socket
 import json
 
-TCP_IP = '127.0.0.1'
+TCP_IP = 'localhost'
 TCP_PORT = 5005
 BUFFER_SIZE = 1024
 OP = "op"
