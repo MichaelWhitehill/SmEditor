@@ -2,8 +2,7 @@ import tkinter as tk
 from threading import Thread
 from tkinter import INSERT, END, SEL_FIRST, SEL_LAST
 
-from Client.JsonController import JsonController
-from DiffResponsiveText import DiffResponsiveText
+from Client.JsonController import JsonController, OP, GET_ALL_TEXT
 from WidgetRedirector import WidgetRedirector
 
 
@@ -57,6 +56,8 @@ class SmEditor:
         self.listen_thread.start()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)  # root is your root window
         self.ignore_actions = False
+        get_text_dict = {OP: GET_ALL_TEXT}
+        self.jsonCon.send_dict(get_text_dict)
         self.root.mainloop()
 
     def shutdown(self):
@@ -114,8 +115,6 @@ class SmEditor:
         return
 
     def net_delete(self, delta_start, delta_index2):
-        start = None
-        end = None
         if delta_start < delta_index2:
             start = delta_start
             end = delta_index2
@@ -128,6 +127,15 @@ class SmEditor:
         self.text.delete(str(start), str(end))
         self.ignore_actions = False
         return None
+
+    def update_text(self, text):
+        self.ignore_actions = True
+        self.text.delete("1.0", END)
+        self.text.insert("1.0", text)
+        self.ignore_actions = False
+
+    def get_text(self):
+        return self.text.get("1.0", END)
 
 
 if __name__ == '__main__':

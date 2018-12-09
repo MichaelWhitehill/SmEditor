@@ -10,6 +10,8 @@ DELETE = "delete"
 INDEX1 = "index1"
 INDEX2 = "index2"
 INSERT_TEXT = "insert_text"
+GET_ALL_TEXT = "get all text"
+UPDATE_ALL_TEXT = "update all text"
 
 
 class JsonController:
@@ -21,6 +23,11 @@ class JsonController:
 
     def send_message(self, message):
         self.socket.send(message.encode())
+
+    def send_dict(self, dictionary):
+        json_fields = json.dumps(dictionary)
+        json_string = str(json_fields)
+        self.send_message(json_string)
 
     def propagate_insert(self, index, insert_text):
         fields = {OP: INSERT, INDEX1: str(index), INSERT_TEXT: str(insert_text)}
@@ -48,11 +55,17 @@ class JsonController:
                 if data[OP] == INSERT:
                     insert_cursor = Cursor(data[INDEX1])
                     self.sm_editor.net_insert(insert_cursor, data[INSERT_TEXT])
-                if data[OP] == DELETE:
+                elif data[OP] == DELETE:
                     c1 = Cursor(data[INDEX1])
                     c2 = Cursor(data[INDEX2])
                     self.sm_editor.net_delete(c1, c2)
+                elif data[OP] == GET_ALL_TEXT:
+                    text = self.sm_editor.get_text()
+                    update_dict = {OP: UPDATE_ALL_TEXT, INSERT_TEXT: text}
+                    self.send_dict(update_dict)
+                elif data[OP] == UPDATE_ALL_TEXT:
+                    text = data[INSERT_TEXT]
+                    self.sm_editor.update_text(text)
 
     def close(self):
         self.socket.close()
-
