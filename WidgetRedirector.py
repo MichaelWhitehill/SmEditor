@@ -1,3 +1,4 @@
+# @SOURCE https://github.com/python/cpython/blob/master/Lib/idlelib/redirector.py
 from tkinter import TclError
 
 class WidgetRedirector:
