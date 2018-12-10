@@ -51,7 +51,7 @@ class JsonController:
                 return
             else:
                 data = json.loads(in_message)
-                from Client.SmEditor import Cursor
+                from SmEditor import Cursor
                 if data[OP] == INSERT:
                     insert_cursor = Cursor(data[INDEX1])
                     self.sm_editor.net_insert(insert_cursor, data[INSERT_TEXT])

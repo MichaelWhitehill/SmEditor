@@ -1,12 +1,12 @@
 import os
 import tkinter as tk
 from threading import Thread
-from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar
+from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Menu
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
 
-from Client.JsonController import JsonController, OP, GET_ALL_TEXT
+from JsonController import JsonController, OP, GET_ALL_TEXT
 from WidgetRedirector import WidgetRedirector
 
 
