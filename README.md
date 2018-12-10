@@ -1,6 +1,6 @@
-#### CS457 Jonathan Cowles Michael WhiteHill
+### CS457 Jonathan Cowles Michael WhiteHill
 
-### USAGE:
+#### USAGE:
 
 1. Clone SmEditor Github repository or download ZIP file
 2. cd into the correct directory for the server code
@@ -10,7 +10,7 @@
 ### Michael make sure these are all correct
 
 
-### VIDEO LINK:
+#### VIDEO LINK:
 
 https://youtu.be/-GO4uIHxJT4
 
