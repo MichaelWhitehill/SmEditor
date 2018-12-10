@@ -1,13 +1,12 @@
 import os
 import tkinter as tk
 from threading import Thread
-from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar, N, E, S, W
+from tkinter import INSERT, END, SEL_FIRST, SEL_LAST, Text, Menu, RIGHT, LEFT, Y, Scrollbar
 from tkinter.filedialog import askopenfilename, asksaveasfilename
 from tkinter.messagebox import showinfo
 
 
-from Client.JsonController import JsonController
-from DiffResponsiveText import DiffResponsiveText
+from Client.JsonController import JsonController, OP, GET_ALL_TEXT
 from WidgetRedirector import WidgetRedirector
 
 
@@ -54,18 +53,16 @@ class SmEditor:
     __thisFileMenu = Menu(__thisMenuBar, tearoff=0)
     __thisEditMenu = Menu(__thisMenuBar, tearoff=0)
     __thisHelpMenu = Menu(__thisMenuBar, tearoff=0)
+   # __thisScrollBar = Scrollbar(text)
     __file = None
 
     def __init__(self):
         self.jsonCon = JsonController(self)
 
         self.text = tk.Text(self.root)
-        self.text.grid(sticky=N + E + S + W)
+        self.text.grid()
         self.text.pack(side="left")
 
-        self.__thisScrollBar = Scrollbar(self.text)
-
-        self.d_text = DiffResponsiveText(self.root)
         self.redirector = WidgetRedirector(self.text)
         self.original_mark = self.redirector.register("mark", self.on_mark)
         self.original_insert = self.redirector.register("insert", self.on_insert)
@@ -75,6 +72,7 @@ class SmEditor:
         self.listen_thread.start()
         self.root.protocol('WM_DELETE_WINDOW', self.shutdown)  # root is your root window
         self.ignore_actions = False
+
 
         self.root.title("Collaborative Notepad CS457")
         screenWidth = self.root.winfo_screenwidth()
@@ -99,10 +97,13 @@ class SmEditor:
         self.__thisMenuBar.add_cascade(label="Help",menu=self.__thisHelpMenu)
 
         self.root.config(menu=self.__thisMenuBar)
-        self.__thisScrollBar.pack(side=RIGHT, fill=Y)
-        self.__thisScrollBar.config(command=self.text.yview)
-        self.text.config(yscrollcommand=self.__thisScrollBar.set)
-        #showinfo("Welcome","Welcome to our collaborative text editor for CS457 \n\nCreated by Jonathan Cowles & Michael Whitehill")
+        # self.__thisScrollBar.pack(side=RIGHT, fill=Y)
+        # self.__thisScrollBar.config(command=self.text.yview)
+        # self.text.config(yscrollcommand=self.__thisScrollBar.set)
+
+        get_text_dict = {OP: GET_ALL_TEXT}
+        self.jsonCon.send_dict(get_text_dict)
+
         self.root.mainloop()
 
 
@@ -123,6 +124,7 @@ class SmEditor:
 
             file = open(self.__file, "r")
 
+        #TODO: Check this against michaels code:
             self.text.insert(1.0, file.read())
             file.close()
 
@@ -185,7 +187,6 @@ class SmEditor:
 
     def on_insert(self, *event):
         # print("insert", event)
-        self.d_text.insert(Cursor(self.text.index(INSERT)), event[1])
         self.delta_index = Cursor(self.text.index(INSERT)) + Cursor("0.1")
         if not self.ignore_actions:
             self.jsonCon.propagate_insert(Cursor(self.text.index(INSERT)), event[1])
@@ -198,22 +199,19 @@ class SmEditor:
         if event[0] == "insert-1c":
             print("delete the character behind the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
-            self.d_text.delete(insert_cursor, insert_cursor - Cursor("0.1"))
             index_1 = insert_cursor
             index_2 = insert_cursor - Cursor("0.1")
-            # self.jsonCon.propagate_delete(insert_cursor, insert_cursor - Cursor("0.1"))
         elif event[0] == "insert":
             print("Delete the character before the cursor")
             insert_cursor = Cursor(self.text.index(INSERT))
-            self.d_text.delete(insert_cursor, insert_cursor + Cursor("0.1"))
             index_1 = insert_cursor
             index_2 = insert_cursor + Cursor("0.1")
-            # self.jsonCon.propagate_delete(insert_cursor, insert_cursor + Cursor("0.1"))
         elif event[0] == SEL_FIRST:
             index_1 = Cursor(self.text.index(SEL_FIRST))
             index_2 = Cursor(self.text.index(SEL_LAST))
-            # self.d_text.delete(fi, li)
-            # self.jsonCon.propagate_delete(fi, li)
+        elif event[0] == 1.0:
+            index_1 = Cursor("1.0")
+            index_2 = Cursor(self.text.index(event[1]))
         if not self.ignore_actions:
             self.jsonCon.propagate_delete(index_1, index_2)
         return self.original_delete(*event)
@@ -225,8 +223,6 @@ class SmEditor:
         return
 
     def net_delete(self, delta_start, delta_index2):
-        start = None
-        end = None
         if delta_start < delta_index2:
             start = delta_start
             end = delta_index2
@@ -239,6 +235,17 @@ class SmEditor:
         self.text.delete(str(start), str(end))
         self.ignore_actions = False
         return None
+
+    def update_text(self, text):
+        self.ignore_actions = True
+        self.text.delete("1.0", END)
+        #self.text.tag_configure("red", foreground="red")
+        #text.highlight_pattern("word", "red")
+        self.text.insert("1.0", text)
+        self.ignore_actions = False
+
+    def get_text(self):
+        return self.text.get("1.0", END)
 
 
 if __name__ == '__main__':
