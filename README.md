@@ -1,11 +1,16 @@
-### FUTURE OPTIONS:
+#### CS457 Jonathan Cowles Michael WhiteHill
 
-1. Ignore all json commands from just one client
-2. Designate specific lines that shouldnt be edited by other users 
-3. Have multiple GUI's open that are treated as seperate files
+### USAGE:
+
+1. Clone SmEditor Github repository or download ZIP file
+2. cd into the correct directory for the server code
+3. run command python3 Server.py
+4. -Server code must be running before SmEditor client(s) can be run-
+5. To make the code work on multiple different computers the IP variable must be updated in the Server and JsonController classes?
+### Michael make sure these are all correct
 
 
-### TODO:
+### VIDEO LINK:
 
-1. server handle multiple clients
-2. JSONcontroller work with JSON 
+https://youtu.be/-GO4uIHxJT4
+
